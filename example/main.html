@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="../lib/sea.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .div {
+            width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="div">
+        <canvas id="canvas" width="800" height="500"></canvas>
+    </div>
+    <script>
+        seajs.config({
+            alias: {
+                'main': '../src/main'
+            }
+        });
+        seajs.use('main', function(C) {
+            var canvas = document.getElementById('canvas');
+
+            var c = new C(canvas);
+
+            c.rect({
+                point: {x: 0, y:0},
+                width: 100,
+                height: 100,
+                shadow: {
+                    color: '#000000',
+                    offsetX: 20,
+                    offsetY: 20,
+                    blur: 5
+                }
+            });
+
+            c.rect({
+                point: {x: 200, y:0},
+                width: 100,
+                height: 100
+            }).lineFrame({
+                points: [
+                        [0, 200],
+                        [0, 300],
+                        [100, 300]
+                ],
+                width: 3,
+                type: 'all'
+            }).line({
+                points: [
+                    [100, 200],
+                    [100, 300]
+                ],
+                width: 5
+            });
+        });
+    </script>
+</body>
+</html>
