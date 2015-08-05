@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .div {
+            width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000000;
+        }
+    </style>
+    <script src="../lib/sea.js"></script>
+</head>
+<body>
+<div class="div">
+    <canvas id="canvas" width="800" height="500"></canvas>
+</div>
+<script>
+    seajs.config({
+        alias: {
+            'main': '../src/main'
+        }
+    });
+    seajs.use('main', function(C) {
+        var canvas = document.getElementById('canvas');
+
+        var c = new C(canvas);
+
+        c.roundRect({
+            point: {x: 200, y:100},
+            width: 100,
+            height: 100,
+            radius: 10,
+            lineWidth: 1,
+            style: {
+                color: 'blue'
+            }
+//            type: 'fill'
+        });
+
+//        var state = false;
+//        var x = null;
+//        var y = null;
+//        c.on('mousedown', function(e) {
+//            this.restoreData().saveData();
+//            x = e.clientX - this.client.x;
+//            y = e.clientY - this.client.y;
+//            state = true;
+//        });
+//
+//        c.on('mousemove', function(e) {
+//            if (!state) return;
+//
+//            this.restoreData();
+//
+//            var _x = e.clientX - this.client.x;
+//            var _y = e.clientY - this.client.y;
+//
+//            var w = Math.abs(x - _x);
+//            var h = Math.abs(y - _y);
+//
+//            var r = Math.sqrt(w*w + h*h);
+//
+//            this.arc({
+//                point: {x: x, y:y},
+//                radius: r,
+////                width: 10,
+//                style: {
+//                    color: 'blue'
+//                },
+////                type: 'fill'
+////                shadow: {
+////                    color: '#000000',
+////                    offsetX: 20,
+////                    offsetY: 20,
+////                    blur: 5
+////                }
+//            });
+//        });
+//
+//        c.on('mouseup', function(e) {
+//            state = false;
+//            this.restoreData();
+//            var _x = e.clientX - this.client.x;
+//            var _y = e.clientY - this.client.y;
+//
+//            var w = Math.abs(x - _x);
+//            var h = Math.abs(y - _y);
+//
+//            var r = Math.sqrt(w*w + h*h);
+//
+//            this.arc({
+//                point: {x: x, y:y},
+//                radius: r,
+//                style: {
+//                    color: 'blue'
+//                },
+////                type: 'fill'
+//            });
+//            this.saveData();
+//        });
+    });
+</script>
+</body>
+</html>

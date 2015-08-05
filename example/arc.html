@@ -50,16 +50,20 @@
             var _x = e.clientX - this.client.x;
             var _y = e.clientY - this.client.y;
 
-            this.dashedLine({
-                points: [
-                    [x, y],
-                    [_x, _y]
-                ],
-                lineWidth: 0.5,
+            var w = Math.abs(x - _x);
+            var h = Math.abs(y - _y);
+
+            var r = Math.sqrt(w*w + h*h);
+
+            this.arc({
+                point: {x: x, y:y},
+                radius: r,
+//                width: 10,
                 style: {
                     color: 'blue'
-                }
-//                ,shadow: {
+                },
+//                type: 'fill'
+//                shadow: {
 //                    color: '#000000',
 //                    offsetX: 20,
 //                    offsetY: 20,
@@ -74,15 +78,18 @@
             var _x = e.clientX - this.client.x;
             var _y = e.clientY - this.client.y;
 
-            this.dashedLine({
-                points: [
-                    [x, y],
-                    [_x, _y]
-                ],
-                lineWidth: 0.5,
+            var w = Math.abs(x - _x);
+            var h = Math.abs(y - _y);
+
+            var r = Math.sqrt(w*w + h*h);
+
+            this.arc({
+                point: {x: x, y:y},
+                radius: r,
                 style: {
                     color: 'blue'
-                }
+                },
+//                type: 'fill'
             });
             this.saveData();
         });

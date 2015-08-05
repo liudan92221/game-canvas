@@ -85,16 +85,11 @@ define(function(require, exports, module) {
         context.strokeStyle = style.color ? style.color : '';
         context.fillStyle = style.color ? style.color : '';
 
-        if (isObject(obj.shadow)) {
-            this._shadow(obj.shadow);
-        }
+        this._shadow(obj.shadow);
 
         context.rect(x, y, w, h);
-        if (obj.type === 'fill') {
-            context.fill();
-        } else {
-            context.stroke();
-        }
+
+        this._draw(obj);
 
         context.restore();
 
@@ -105,9 +100,11 @@ define(function(require, exports, module) {
      *  画圆
      *  @param obj {object}
      *      - point: {x: 0, y: 0} 必传
-     *      - width: {number} 必传
-     *      - height: {number} 必传
+     *      - radius: {number} 必传
+     *      - width: {number}
+     *      - radian: {start: 0, end: Math.PI},
      *      - type: 'stroke|fill',
+     *      - clockwise: {boolean}, false顺时针，true逆时针
      *      - style: {
      *          color: '', '#00000'
      *          gradient: {
@@ -122,7 +119,86 @@ define(function(require, exports, module) {
      *      }
      */
     Base.prototype.arc = function(obj) {
+        if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.radius)) {
+            throw 'arc param is error';
+        }
+        var context = this.context;
+        var x = obj.point.x;
+        var y = obj.point.y;
+        var r = obj.radius;
+        var startPI = (obj.radian && obj.radian.start) ? obj.radian.start : 0;
+        var endPI = (obj.radian && obj.radian.end) ? obj.radian.end : Math.PI*2;
+        var style = isObject(obj.style) ? obj.style : {};
 
+        context.save();
+        context.beginPath();
+        context.strokeStyle = style.color ? style.color : '';
+        context.fillStyle = style.color ? style.color : '';
+        context.lineWidth = obj.width || 0.5;
+
+        this._shadow(obj.shadow);
+
+        context.arc(x, y, r, startPI, endPI, !!obj.clockwise);
+
+        this._draw(obj);
+
+        context.restore();
+
+        return this;
+    };
+
+    /**
+     *  画圆角矩形
+     *  @param obj {object}
+     *      - point: {x: 0, y: 0} 必传
+     *      - width: {number} 必传
+     *      - height: {number} 必传
+     *      - radius: [0,0,0,0] | 0,
+     *      - type: 'stroke|fill',
+     *      - style: {
+     *          color: '', '#00000'
+     *          gradient: {
+     *
+     *          }
+     *      }
+     *      - shadow: {
+     *          - color: {string}
+     *          - offsetX: {number}
+     *          - offsetY: {number}
+     *          - blur: {number}
+     *      }
+     */
+    Base.prototype.roundRect = function(obj) {
+        if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.width) || !isNumber(obj.height)) {
+            throw 'roundRect param is error';
+        }
+        var context = this.context;
+        var x = obj.point.x;
+        var y = obj.point.y;
+        var w = obj.width;
+        var h = obj.height;
+        var r = isNumber(obj.radius) ? [obj.radius
+        ,obj.radius
+        ,obj.radius
+        ,obj.radius] : isArray(obj.radius) ? obj.radius : [0,0,0,0];
+
+        context.save();
+        context.beginPath();
+
+        this._setStyle(obj);
+
+        context.moveTo(x, y+r[0]);
+        context.arcTo(x, y, x+r[0], y, r[0]);
+        context.arcTo(x+w, y, x+w, y+r[1], r[1]);
+        context.arcTo(x+w, y+h, x+w-r[2], y+h, r[2]);
+        context.arcTo(x, y+h, x, y+h-r[3], r[3]);
+        context.lineTo(x, y+r[0]);
+
+        this._draw(obj);
+
+        context.restore();
+
+        return this;
     };
 
     /**
@@ -133,7 +209,7 @@ define(function(require, exports, module) {
      *      ]
      *      - type: 'stroke|fill',
      *      - closePath: {boolean} 是否闭合路径
-     *      - width: {number}
+     *      - lineWidth: {number}
      *      - style: {
      *          color: '', '#00000'
      *          gradient: {
@@ -154,36 +230,18 @@ define(function(require, exports, module) {
 
         var context = this.context;
         var points = obj.points;
-        var style = isObject(obj.style) ? obj.style : {};
-        var lineWidth = obj.width || 0.5;
 
         context.save();
         context.beginPath();
 
-        context.lineWidth = lineWidth;
-        context.strokeStyle = style.color ? style.color : '';
-        context.fillStyle = style.color ? style.color : '';
-
-        if (isObject(obj.shadow)) {
-            this._shadow(obj.shadow);
-        }
+        this._setStyle(obj);
 
         context.moveTo(points[0][0], points[0][1]);
         for (var i = 1;i < points.length;i++) {
             context.lineTo(points[i][0], points[i][1]);
         }
 
-        if (obj.type === 'fill') {
-            context.closePath();
-            context.fill();
-        } else if (obj.type === 'all') {
-            context.closePath();
-            context.fill();
-            context.stroke();
-        } else {
-            if (obj.closePath) context.closePath();
-            context.stroke();
-        }
+        this._draw(obj);
 
         context.restore();
         return this;
@@ -226,7 +284,7 @@ define(function(require, exports, module) {
      *      - points: [    必传
      *          [x, y]
      *      ]
-     *      - width: {number}
+     *      - lineWidth: {number}
      *      - gap: {number}
      *      - style: {
      *          color: '', '#00000'
@@ -249,9 +307,6 @@ define(function(require, exports, module) {
         var gap = isNumber(obj.gap) ? obj.gap : 10;
         var context = this.context;
 
-        var lineWidth = obj.width;
-        var style = isObject(obj.style) ? obj.style : {};
-
         var startX = obj.points[0][0];
         var startY = obj.points[0][1];
         var endX = obj.points[1][0];
@@ -267,8 +322,7 @@ define(function(require, exports, module) {
         context.save();
         context.beginPath();
 
-        context.lineWidth = lineWidth;
-        context.strokeStyle = style.color ? style.color : '';
+        this._setStyle(obj);
 
         for (var i = 0; i < dasheNum; i++) {
             context[i % 2 === 0 ? 'moveTo' : 'lineTo'](startX + itemX * i, startY + itemY * i);
@@ -288,11 +342,39 @@ define(function(require, exports, module) {
      *      - blur: {number}
      */
     Base.prototype._shadow = function(shadow) {
+        if (isObject(shadow)) {
+            var context = this.context;
+            context.shadowColor = shadow.color;
+            context.shadowOffsetX = shadow.offsetX || 0;
+            context.shadowOffsetY = shadow.offsetY || 0;
+            context.shadowBlur = shadow.blur || 0;
+        }
+    };
+
+    Base.prototype._setStyle = function(obj) {
         var context = this.context;
-        context.shadowColor = shadow.color;
-        context.shadowOffsetX = shadow.offsetX || 0;
-        context.shadowOffsetY = shadow.offsetY || 0;
-        context.shadowBlur = shadow.blur || 0;
+        var style = isObject(obj.style) ? obj.style : {};
+
+        context.lineWidth = obj.lineWidth || 0.5;
+        context.strokeStyle = style.color ? style.color : '';
+        context.fillStyle = style.color ? style.color : '';
+
+        this._shadow(obj.shadow);
+    };
+
+    Base.prototype._draw = function(obj) {
+        var context = this.context;
+        if (obj.type === 'fill') {
+            context.closePath();
+            context.fill();
+        } else if (obj.type === 'all') {
+            context.closePath();
+            context.fill();
+            context.stroke();
+        } else {
+            if (obj.closePath) context.closePath();
+            context.stroke();
+        }
     };
 
     Base.prototype.on = function(type, cb) {
