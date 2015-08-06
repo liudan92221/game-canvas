@@ -57,20 +57,19 @@
             var r_y = y > _y ? _y : y;
 
             this.line({
-                points: [
-                    [x, y],
-                    [_x, _y]
-                ],
-                width: 0.5,
+                startPoint: {x: x, y: y},
+                endPoint: {x: _x, y: _y},
                 style: {
-                    color: 'blue'
+                    color: 'blue',
+                    lineWidth: 0.5
                 }
             }).rect({
                 point: {x: r_x, y: r_y},
                 width: w,
                 height: h,
                 style: {
-                    color: '#000000'
+                    color: '#000000',
+                    lineWidth: 0.5
                 }
             });
         });
@@ -82,13 +81,11 @@
             var _y = e.clientY - this.client.y;
 
             this.line({
-                points: [
-                    [x, y],
-                    [_x, _y]
-                ],
-                width: 0.5,
+                startPoint: {x: x, y: y},
+                endPoint: {x: _x, y: _y},
                 style: {
-                    color: 'blue'
+                    color: 'blue',
+                    lineWidth: 0.5
                 }
             });
             this.saveData();

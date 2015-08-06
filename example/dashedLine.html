@@ -51,13 +51,12 @@
             var _y = e.clientY - this.client.y;
 
             this.dashedLine({
-                points: [
-                    [x, y],
-                    [_x, _y]
-                ],
-                lineWidth: 0.5,
+                startPoint: {x: x, y: y},
+                endPoint: {x: _x, y: _y},
+
                 style: {
-                    color: 'blue'
+                    color: 'blue',
+                    lineWidth: 0.5
                 }
 //                ,shadow: {
 //                    color: '#000000',
@@ -75,13 +74,11 @@
             var _y = e.clientY - this.client.y;
 
             this.dashedLine({
-                points: [
-                    [x, y],
-                    [_x, _y]
-                ],
-                lineWidth: 0.5,
+                startPoint: {x: x, y: y},
+                endPoint: {x: _x, y: _y},
                 style: {
-                    color: 'blue'
+                    color: 'blue',
+                    lineWidth: 0.5
                 }
             });
             this.saveData();

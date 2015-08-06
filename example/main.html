@@ -53,14 +53,17 @@
                         [0, 300],
                         [100, 300]
                 ],
-                lineWidth: 3,
+                style: {
+                    lineWidth: 3
+                },
+
                 type: 'all'
             }).line({
-                points: [
-                    [100, 200],
-                    [100, 300]
-                ],
-                lineWidth: 5
+                startPoint: {x: 100, y: 200},
+                endPoint: {x: 100, y: 300},
+                style: {
+                    lineWidth: 5
+                }
             });
         });
     </script>

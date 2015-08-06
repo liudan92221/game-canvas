@@ -35,21 +35,22 @@
         var stepy = 10;
         for (var i = stepy + 0.5; i < c.canvas.width; i += stepy) {
             c.line({
-                points: [
-                    [i, 0],
-                    [i, c.canvas.height]
-                ],
-                width: 0.5
+                startPoint: {x: i, y: 0},
+                endPoint: {x: i, y: c.canvas.height},
+                style: {
+                    lineWidth: 0.5
+                }
+
             });
         }
 
         for (var i = stepy + 0.5; i < c.canvas.width; i += stepy) {
             c.line({
-                points: [
-                    [0, i],
-                    [c.canvas.width, i]
-                ],
-                width: 0.5
+                startPoint: {x: 0, y: i},
+                endPoint: {x: c.canvas.width, y: i},
+                style: {
+                    lineWidth: 0.5
+                }
             });
         }
 
@@ -68,13 +69,11 @@
 
             this.restoreData();
             this.line({
-                points: [
-                    [x, y],
-                    [e.clientX - this.client.x, e.clientY - this.client.y]
-                ],
-                width: 0.5,
+                startPoint: {x: x, y: y},
+                endPoint: {x: e.clientX - this.client.x, y: e.clientY - this.client.y},
                 style: {
-                    color: 'blue'
+                    color: 'blue',
+                    lineWidth: 0.5
                 }
             });
         });

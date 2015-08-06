@@ -1,6 +1,7 @@
 /**
  * Created by liudan on 15/7/26.
  */
+'use strict';
 define(function(require, exports, module) {
     var util = require('./util');
     var isObject = util.isObject;
@@ -55,19 +56,7 @@ define(function(require, exports, module) {
      *      - point: {x: 0, y: 0} 必传
      *      - width: {number} 必传
      *      - height: {number} 必传
-     *      - type: 'stroke|fill',
-     *      - style: {
-     *          color: '', '#00000'
-     *          gradient: {
-     *
-     *          }
-     *      }
-     *      - shadow: {
-     *          - color: {string}
-     *          - offsetX: {number}
-     *          - offsetY: {number}
-     *          - blur: {number}
-     *      }
+     *      - type: 'stroke|fill'
      */
     Base.prototype.rect = function(obj) {
         if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.width) || !isNumber(obj.height)) {
@@ -78,14 +67,11 @@ define(function(require, exports, module) {
         var y = obj.point.y;
         var w = obj.width;
         var h = obj.height;
-        var style = isObject(obj.style) ? obj.style : {};
 
         context.save();
         context.beginPath();
-        context.strokeStyle = style.color ? style.color : '';
-        context.fillStyle = style.color ? style.color : '';
 
-        this._shadow(obj.shadow);
+        this._setStyle(obj.style, obj.shadow);
 
         context.rect(x, y, w, h);
 
@@ -104,19 +90,7 @@ define(function(require, exports, module) {
      *      - width: {number}
      *      - radian: {start: 0, end: Math.PI},
      *      - type: 'stroke|fill',
-     *      - clockwise: {boolean}, false顺时针，true逆时针
-     *      - style: {
-     *          color: '', '#00000'
-     *          gradient: {
-     *
-     *          }
-     *      }
-     *      - shadow: {
-     *          - color: {string}
-     *          - offsetX: {number}
-     *          - offsetY: {number}
-     *          - blur: {number}
-     *      }
+     *      - clockwise: {boolean} false顺时针，true逆时针
      */
     Base.prototype.arc = function(obj) {
         if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.radius)) {
@@ -128,15 +102,11 @@ define(function(require, exports, module) {
         var r = obj.radius;
         var startPI = (obj.radian && obj.radian.start) ? obj.radian.start : 0;
         var endPI = (obj.radian && obj.radian.end) ? obj.radian.end : Math.PI*2;
-        var style = isObject(obj.style) ? obj.style : {};
 
         context.save();
         context.beginPath();
-        context.strokeStyle = style.color ? style.color : '';
-        context.fillStyle = style.color ? style.color : '';
-        context.lineWidth = obj.width || 0.5;
 
-        this._shadow(obj.shadow);
+        this._setStyle(obj.style, obj.shadow);
 
         context.arc(x, y, r, startPI, endPI, !!obj.clockwise);
 
@@ -154,19 +124,7 @@ define(function(require, exports, module) {
      *      - width: {number} 必传
      *      - height: {number} 必传
      *      - radius: [0,0,0,0] | 0,
-     *      - type: 'stroke|fill',
-     *      - style: {
-     *          color: '', '#00000'
-     *          gradient: {
-     *
-     *          }
-     *      }
-     *      - shadow: {
-     *          - color: {string}
-     *          - offsetX: {number}
-     *          - offsetY: {number}
-     *          - blur: {number}
-     *      }
+     *      - type: 'stroke|fill'
      */
     Base.prototype.roundRect = function(obj) {
         if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.width) || !isNumber(obj.height)) {
@@ -185,7 +143,7 @@ define(function(require, exports, module) {
         context.save();
         context.beginPath();
 
-        this._setStyle(obj);
+        this._setStyle(obj.style, obj.shadow);
 
         context.moveTo(x, y+r[0]);
         context.arcTo(x, y, x+r[0], y, r[0]);
@@ -209,19 +167,6 @@ define(function(require, exports, module) {
      *      ]
      *      - type: 'stroke|fill',
      *      - closePath: {boolean} 是否闭合路径
-     *      - lineWidth: {number}
-     *      - style: {
-     *          color: '', '#00000'
-     *          gradient: {
-     *
-     *          }
-     *      }
-     *      - shadow: {
-     *          - color: {string}
-     *          - offsetX: {number}
-     *          - offsetY: {number}
-     *          - blur: {number}
-     *      }
      */
     Base.prototype.lineFrame = function(obj) {
         if (!isArray(obj.points) || !obj.points.length) {
@@ -234,7 +179,7 @@ define(function(require, exports, module) {
         context.save();
         context.beginPath();
 
-        this._setStyle(obj);
+        this._setStyle(obj.style, obj.shadow);
 
         context.moveTo(points[0][0], points[0][1]);
         for (var i = 1;i < points.length;i++) {
@@ -250,29 +195,18 @@ define(function(require, exports, module) {
     /**
      *  画线段
      *  @param obj {object}
-     *      - points: [    必传
-     *          [x, y]
-     *      ]
-     *      - width: {number}
-     *      - style: {
-     *          color: '', '#00000'
-     *          gradient: {
-     *
-     *          }
-     *      }
-     *      - shadow: {
-     *          - color: {string}
-     *          - offsetX: {number}
-     *          - offsetY: {number}
-     *          - blur: {number}
-     *      }
+     *      - startPoint: {x: 0, y:0}, 必传
+     *      - endPoint: {x: 0, y:0}, 必传
      */
     Base.prototype.line = function(obj) {
-        if (!isArray(obj.points) || obj.points.length <= 1) {
+        if (!isObject(obj) || !isObject(obj.startPoint) || !isObject(obj.endPoint)) {
             throw 'line param is error';
         }
 
-        obj.points = obj.points.slice(0, 2);
+        obj.points = [
+            [obj.startPoint.x, obj.startPoint.y],
+            [obj.endPoint.x, obj.endPoint.y]
+        ];
 
         this.lineFrame(obj);
         return this;
@@ -281,36 +215,22 @@ define(function(require, exports, module) {
     /**
      *  画虚线
      *  @param obj {object}
-     *      - points: [    必传
-     *          [x, y]
-     *      ]
-     *      - lineWidth: {number}
+     *      - startPoint: {x: 0, y:0}, 必传
+     *      - endPoint: {x: 0, y:0}, 必传
      *      - gap: {number}
-     *      - style: {
-     *          color: '', '#00000'
-     *          gradient: {
-     *
-     *          }
-     *      }
-     *      - shadow: {
-     *          - color: {string}
-     *          - offsetX: {number}
-     *          - offsetY: {number}
-     *          - blur: {number}
-     *      }
      */
     Base.prototype.dashedLine = function(obj) {
-        if (!isArray(obj.points) || obj.points.length <= 1) {
+        if (!isObject(obj) || !isObject(obj.startPoint) || !isObject(obj.endPoint)) {
             throw 'dashedLine param is error';
         }
 
         var gap = isNumber(obj.gap) ? obj.gap : 10;
         var context = this.context;
 
-        var startX = obj.points[0][0];
-        var startY = obj.points[0][1];
-        var endX = obj.points[1][0];
-        var endY = obj.points[1][1];
+        var startX = obj.startPoint.x;
+        var startY = obj.startPoint.y;
+        var endX = obj.endPoint.x;
+        var endY = obj.endPoint.y;
 
         var deltaX = endX - startX;
         var deltaY = endY - startY;
@@ -322,7 +242,7 @@ define(function(require, exports, module) {
         context.save();
         context.beginPath();
 
-        this._setStyle(obj);
+        this._setStyle(obj.style, obj.shadow);
 
         for (var i = 0; i < dasheNum; i++) {
             context[i % 2 === 0 ? 'moveTo' : 'lineTo'](startX + itemX * i, startY + itemY * i);
@@ -351,15 +271,23 @@ define(function(require, exports, module) {
         }
     };
 
-    Base.prototype._setStyle = function(obj) {
+    /**
+     *  设置样式
+     *  @param style {object}
+     *      - color: '', '#00000',
+     *      - lineWidth: {number}
+     *      - gradient: {}
+     *  @param shadow {object}
+     */
+    Base.prototype._setStyle = function(style, shadow) {
         var context = this.context;
-        var style = isObject(obj.style) ? obj.style : {};
+        style = isObject(style) ? style : {};
 
-        context.lineWidth = obj.lineWidth || 0.5;
+        context.lineWidth = style.lineWidth || 0.5;
         context.strokeStyle = style.color ? style.color : '';
         context.fillStyle = style.color ? style.color : '';
 
-        this._shadow(obj.shadow);
+        this._shadow(shadow);
     };
 
     Base.prototype._draw = function(obj) {
