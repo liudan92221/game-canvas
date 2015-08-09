@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .div {
+            width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000000;
+        }
+
+        .move {
+            cursor: move;
+        }
+    </style>
+    <script src="../lib/sea.js"></script>
+</head>
+<body>
+<div class="div">
+    <canvas id="canvas" width="800" height="500"></canvas>
+</div>
+<script>
+    seajs.config({
+        alias: {
+            'main': '../src/main'
+        }
+    });
+    seajs.use('main', function(C) {
+        var canvas = document.getElementById('canvas');
+
+        var c = new C(canvas);
+        var bezier = c.createDraw();
+
+        c.saveData();  //保存画布
+
+        var start = {x: 200, y: 100};
+        var end = {x: 400, y: 400};
+
+        var ctrl1 = {x: 250, y: 350};
+        var ctrl2 = {x: 150, y: 300};
+
+        bezier.arc({
+            point: start,
+            radius: 4,
+            style: {
+                color: 'blue',
+                lineWidth: 1
+            }
+        }).arc({
+            point: end,
+            radius: 4,
+            style: {
+                color: 'blue',
+                lineWidth: 1
+            }
+        }).bezier({
+            name: 'bezier',
+            point: [
+                start,
+                end
+            ],
+            controlPoints: [
+                ctrl1,
+                ctrl2
+            ],
+            style: {
+                color: '#000000',
+                lineWidth: 1
+            }
+        }).arc({
+            name: 'ctrl1',
+            point: ctrl1,
+            radius: 4,
+            style: {
+                color: 'blue',
+                lineWidth: 1
+            }
+        }).arc({
+            name: 'ctrl2',
+            point: ctrl2,
+            radius: 4,
+            style: {
+                color: 'blue',
+                lineWidth: 1
+            }
+        });
+
+        var state = 0;
+        bezier.on('mousedown', function(e) {
+            var client = c.getPosition();
+            var x = e.clientX - client.x;
+            var y = e.clientY - client.y;
+
+            if (this.isPointInPathByName('ctrl1', x, y)) {
+                state = 1;
+                console.log('ctrl1');
+            }
+
+            if (this.isPointInPathByName('ctrl2', x, y)) {
+                state = 2;
+                console.log('ctrl2');
+            }
+        });
+
+        c.on('mousemove', function(e) {
+            if (state === 0) {
+                return;
+            }
+
+            var client = c.getPosition();
+            var x = e.clientX - client.x;
+            var y = e.clientY - client.y;
+
+            c.restoreData();  //还原画布
+            if (state === 1) {
+                ctrl1.x = x;
+                ctrl1.y = y;
+            } else if (state === 2) {
+                ctrl2.x = x;
+                ctrl2.y = y;
+            }
+            bezier.resetDraw();
+        });
+
+        c.on('mouseup', function() {
+            state = 0;
+        });
+    });
+</script>
+</body>
+</html>

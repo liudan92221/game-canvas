@@ -28,61 +28,7 @@
         }
     });
     seajs.use('main', function(C) {
-        var canvas = document.getElementById('canvas');
 
-        var c = new C(canvas);
-
-        var state = false;
-        var x = null;
-        var y = null;
-        c.on('mousedown', function(e) {
-            this.restoreData().saveData();
-            x = e.clientX - this.client.x;
-            y = e.clientY - this.client.y;
-            state = true;
-        });
-
-        c.on('mousemove', function(e) {
-            if (!state) return;
-
-            this.restoreData();
-
-            var _x = e.clientX - this.client.x;
-            var _y = e.clientY - this.client.y;
-
-            this.dashedLine({
-                startPoint: {x: x, y: y},
-                endPoint: {x: _x, y: _y},
-
-                style: {
-                    color: 'blue',
-                    lineWidth: 0.5
-                }
-//                ,shadow: {
-//                    color: '#000000',
-//                    offsetX: 20,
-//                    offsetY: 20,
-//                    blur: 5
-//                }
-            });
-        });
-
-        c.on('mouseup', function(e) {
-            state = false;
-            this.restoreData();
-            var _x = e.clientX - this.client.x;
-            var _y = e.clientY - this.client.y;
-
-            this.dashedLine({
-                startPoint: {x: x, y: y},
-                endPoint: {x: _x, y: _y},
-                style: {
-                    color: 'blue',
-                    lineWidth: 0.5
-                }
-            });
-            this.saveData();
-        });
     });
 </script>
 </body>

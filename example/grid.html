@@ -31,12 +31,16 @@
         var canvas = document.getElementById('canvas');
 
         var c = new C(canvas);
+        var lineX = c.createDraw();
+        var lineY = c.createDraw();
 
         var stepy = 10;
         for (var i = stepy + 0.5; i < c.canvas.width; i += stepy) {
-            c.line({
-                startPoint: {x: i, y: 0},
-                endPoint: {x: i, y: c.canvas.height},
+            lineX.line({
+                point: [
+                    {x: i, y: 0},
+                    {x: i, y: c.canvas.height}
+                ],
                 style: {
                     lineWidth: 0.5
                 }
@@ -45,15 +49,18 @@
         }
 
         for (var i = stepy + 0.5; i < c.canvas.width; i += stepy) {
-            c.line({
-                startPoint: {x: 0, y: i},
-                endPoint: {x: c.canvas.width, y: i},
+            lineY.line({
+                point: [
+                    {x: 0, y: i},
+                    {x: c.canvas.width, y: i}
+                ],
                 style: {
                     lineWidth: 0.5
                 }
             });
         }
 
+        var line = c.createDraw();
         var state = false;
         var x = null;
         var y = null;
@@ -68,9 +75,11 @@
             if (!state) return;
 
             this.restoreData();
-            this.line({
-                startPoint: {x: x, y: y},
-                endPoint: {x: e.clientX - this.client.x, y: e.clientY - this.client.y},
+            line.clear().line({
+                point: [
+                    {x: x, y: y},
+                    {x: e.clientX - this.client.x, y: e.clientY - this.client.y}
+                ],
                 style: {
                     color: 'blue',
                     lineWidth: 0.5
@@ -80,6 +89,7 @@
 
         c.on('mouseup', function (e) {
             state = false;
+            line.resetDraw();
             this.saveData();
         });
     });

@@ -3,6 +3,6 @@
  */
 'use strict';
 define(function(require, exports, module) {
-    var Base = require('./base');
-    module.exports = Base;
+    var canvas = require('./canvas');
+    module.exports = canvas;
 });

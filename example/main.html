@@ -30,8 +30,9 @@
             var canvas = document.getElementById('canvas');
 
             var c = new C(canvas);
+            var draw = c.createDraw();
 
-            c.rect({
+            draw.rect({
                 point: {x: 0, y:0},
                 width: 100,
                 height: 100,
@@ -43,27 +44,56 @@
                 }
             });
 
-            c.rect({
+            draw.rect({
                 point: {x: 200, y:0},
                 width: 100,
-                height: 100
+                height: 100,
+                style: {
+                    color: "#eeeeee",
+                    lineWidth: 1
+                },
+                type: 'fill'
             }).lineFrame({
-                points: [
-                        [0, 200],
-                        [0, 300],
-                        [100, 300]
+                point: [
+                    {x:0, y:200},
+                    {x: 0, y: 300},
+                    {x: 100, y:300}
                 ],
                 style: {
                     lineWidth: 3
                 },
 
-                type: 'all'
+                type: 'fill'
             }).line({
-                startPoint: {x: 100, y: 200},
-                endPoint: {x: 100, y: 300},
+                point: [
+                    {x: 100, y: 200},
+                    {x: 100, y: 300}
+                ],
                 style: {
                     lineWidth: 5
                 }
+            }).bezier({
+                point: [
+                    {x: 200, y: 300},
+                    {x: 400, y: 400}
+                ],
+                controlPoints: [
+                    {x: 250, y: 350},
+                    {x: 150, y: 300}
+                ],
+                style: {
+                    lineWidth: 1
+                }
+            });
+            draw.rect({
+                point: {x: 200, y:0},
+                width: 100,
+                height: 100,
+                style: {
+                    color: "#eeeeee",
+                    lineWidth: 1
+                }
+                ,type: 'fill'
             });
         });
     </script>

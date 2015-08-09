@@ -5,145 +5,34 @@
 define(function(require, exports, module) {
     var util = require('./util');
     var isObject = util.isObject;
-    var isArray = util.isArray;
-    var isNumber = util.isNumber;
+//    var isArray = util.isArray;
+//    var isNumber = util.isNumber;
 
-    function Base(canvas) {
-        this.canvas = canvas;
-        this.context = canvas.getContext('2d');
+//    var Graphical = require('./graphical');
 
-        this.w = canvas.width;
-        this.h = canvas.height;
-
-        var client = canvas.getBoundingClientRect();
-        this.client = {
-            x: client.left * (canvas.width/client.width),
-            y: client.top * (canvas.height/client.height)
-        };
-
-        this.data = null;
+    function Base(context) {
+        this.context = context;
     }
-
-    Base.prototype.clear = function() {
-        this.context.clearRect(0, 0, this.w, this.h);
-        return this;
-    };
-
-    Base.prototype.putData = function(imageData) {
-        this.context.putImageData(imageData, 0, 0);
-        return this;
-    };
-
-    Base.prototype.getData = function() {
-        return this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
-    };
-
-    Base.prototype.saveData = function() {
-        this.data = this.getData();
-        return this;
-    };
-
-    Base.prototype.restoreData = function() {
-        if (this.data) {
-            this.putData(this.data);
-        }
-        return this;
-    };
 
     /**
      *  画矩形
-     *  @param obj {object}
-     *      - point: {x: 0, y: 0} 必传
-     *      - width: {number} 必传
-     *      - height: {number} 必传
-     *      - type: 'stroke|fill'
      */
-    Base.prototype.rect = function(obj) {
-        if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.width) || !isNumber(obj.height)) {
-            throw 'rect param is error';
-        }
-        var context = this.context;
-        var x = obj.point.x;
-        var y = obj.point.y;
-        var w = obj.width;
-        var h = obj.height;
-
-        context.save();
-        context.beginPath();
-
-        this._setStyle(obj.style, obj.shadow);
-
-        context.rect(x, y, w, h);
-
-        this._draw(obj);
-
-        context.restore();
-
-        return this;
+    Base.prototype.rect = function(x, y, w, h) {
+        this.context.rect(x, y, w, h);
     };
 
     /**
      *  画圆
-     *  @param obj {object}
-     *      - point: {x: 0, y: 0} 必传
-     *      - radius: {number} 必传
-     *      - width: {number}
-     *      - radian: {start: 0, end: Math.PI},
-     *      - type: 'stroke|fill',
-     *      - clockwise: {boolean} false顺时针，true逆时针
      */
-    Base.prototype.arc = function(obj) {
-        if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.radius)) {
-            throw 'arc param is error';
-        }
-        var context = this.context;
-        var x = obj.point.x;
-        var y = obj.point.y;
-        var r = obj.radius;
-        var startPI = (obj.radian && obj.radian.start) ? obj.radian.start : 0;
-        var endPI = (obj.radian && obj.radian.end) ? obj.radian.end : Math.PI*2;
-
-        context.save();
-        context.beginPath();
-
-        this._setStyle(obj.style, obj.shadow);
-
-        context.arc(x, y, r, startPI, endPI, !!obj.clockwise);
-
-        this._draw(obj);
-
-        context.restore();
-
-        return this;
+    Base.prototype.arc = function(x, y, r, startPI, endPI, clockwise) {
+        this.context.arc(x, y, r, startPI, endPI, clockwise);
     };
 
     /**
      *  画圆角矩形
-     *  @param obj {object}
-     *      - point: {x: 0, y: 0} 必传
-     *      - width: {number} 必传
-     *      - height: {number} 必传
-     *      - radius: [0,0,0,0] | 0,
-     *      - type: 'stroke|fill'
      */
-    Base.prototype.roundRect = function(obj) {
-        if (!isObject(obj) || !isObject(obj.point) || !isNumber(obj.width) || !isNumber(obj.height)) {
-            throw 'roundRect param is error';
-        }
+    Base.prototype.roundRect = function(x, y, w, h, r) {
         var context = this.context;
-        var x = obj.point.x;
-        var y = obj.point.y;
-        var w = obj.width;
-        var h = obj.height;
-        var r = isNumber(obj.radius) ? [obj.radius
-        ,obj.radius
-        ,obj.radius
-        ,obj.radius] : isArray(obj.radius) ? obj.radius : [0,0,0,0];
-
-        context.save();
-        context.beginPath();
-
-        this._setStyle(obj.style, obj.shadow);
 
         context.moveTo(x, y+r[0]);
         context.arcTo(x, y, x+r[0], y, r[0]);
@@ -151,106 +40,59 @@ define(function(require, exports, module) {
         context.arcTo(x+w, y+h, x+w-r[2], y+h, r[2]);
         context.arcTo(x, y+h, x, y+h-r[3], r[3]);
         context.lineTo(x, y+r[0]);
-
-        this._draw(obj);
-
-        context.restore();
-
-        return this;
     };
 
     /**
      *  画线框
-     *  @param obj {object}
-     *      - points: [    必传
-     *          [x, y]
-     *      ]
-     *      - type: 'stroke|fill',
-     *      - closePath: {boolean} 是否闭合路径
      */
-    Base.prototype.lineFrame = function(obj) {
-        if (!isArray(obj.points) || !obj.points.length) {
-            throw 'lineFrame param is error';
-        }
-
+    Base.prototype.lineFrame = function(points) {
         var context = this.context;
-        var points = obj.points;
 
-        context.save();
-        context.beginPath();
-
-        this._setStyle(obj.style, obj.shadow);
-
-        context.moveTo(points[0][0], points[0][1]);
+        context.moveTo(points[0].x, points[0].y);
         for (var i = 1;i < points.length;i++) {
-            context.lineTo(points[i][0], points[i][1]);
+            context.lineTo(points[i].x, points[i].y);
         }
+    };
 
-        this._draw(obj);
-
-        context.restore();
-        return this;
+    /**
+     *  画多边形
+     */
+    Base.prototype.polygon = function(points) {
+        this.lineFrame(points);
     };
 
     /**
      *  画线段
-     *  @param obj {object}
-     *      - startPoint: {x: 0, y:0}, 必传
-     *      - endPoint: {x: 0, y:0}, 必传
      */
-    Base.prototype.line = function(obj) {
-        if (!isObject(obj) || !isObject(obj.startPoint) || !isObject(obj.endPoint)) {
-            throw 'line param is error';
-        }
-
-        obj.points = [
-            [obj.startPoint.x, obj.startPoint.y],
-            [obj.endPoint.x, obj.endPoint.y]
-        ];
-
-        this.lineFrame(obj);
-        return this;
+    Base.prototype.line = function(points) {
+        this.lineFrame(points);
     };
 
     /**
      *  画虚线
-     *  @param obj {object}
-     *      - startPoint: {x: 0, y:0}, 必传
-     *      - endPoint: {x: 0, y:0}, 必传
-     *      - gap: {number}
      */
-    Base.prototype.dashedLine = function(obj) {
-        if (!isObject(obj) || !isObject(obj.startPoint) || !isObject(obj.endPoint)) {
-            throw 'dashedLine param is error';
+    Base.prototype.dashedLine = function(points) {
+        var context = this.context;
+        for (var i = 0; i < points.length; i++) {
+            context[points[i].type](points[i].x, points[i].y);
         }
+    };
 
-        var gap = isNumber(obj.gap) ? obj.gap : 10;
+    /**
+     *  画贝塞尔曲线
+     */
+    Base.prototype.bezier = function(startX, startY, endX, endY, controlPoints) {
         var context = this.context;
 
-        var startX = obj.startPoint.x;
-        var startY = obj.startPoint.y;
-        var endX = obj.endPoint.x;
-        var endY = obj.endPoint.y;
-
-        var deltaX = endX - startX;
-        var deltaY = endY - startY;
-
-        var dasheNum = Math.floor(Math.sqrt(deltaX*deltaX + deltaY*deltaY) / gap);
-        var itemX = deltaX / dasheNum;
-        var itemY = deltaY / dasheNum;
-
-        context.save();
-        context.beginPath();
-
-        this._setStyle(obj.style, obj.shadow);
-
-        for (var i = 0; i < dasheNum; i++) {
-            context[i % 2 === 0 ? 'moveTo' : 'lineTo'](startX + itemX * i, startY + itemY * i);
+        context.moveTo(startX, startY);
+        if (controlPoints.length === 1) {
+            context.quadraticCurveTo(controlPoints[0].x, controlPoints[0].y,
+                endX, endY);
+        } else {
+            context.bezierCurveTo(controlPoints[0].x, controlPoints[0].y,
+                controlPoints[1].x, controlPoints[1].y,
+                endX, endY);
         }
-        context.lineTo(endX, endY);
-        context.stroke();
-        context.restore();
-        return this;
     };
 
     /**

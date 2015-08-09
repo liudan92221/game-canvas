@@ -9,9 +9,23 @@ define(function(require, exports, module) {
         }
     }
 
+    function merge(defaults) {
+        var _obj = {};
+        for(var key in defaults){
+            if(module.exports.isObject(defaults[key])){
+                _obj[key] = merge(defaults[key]);
+            }else{
+                _obj[key] = defaults[key];
+            }
+        }
+        return _obj;
+    }
+
     module.exports = {
         isObject: isType('Object'),
         isNumber: isType('Number'),
-        isArray: Array.isArray ? Array.isArray : isType('Array')
+        isArray: Array.isArray ? Array.isArray : isType('Array'),
+
+        merge: merge
     }
 });

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .div {
+            width: 800px;
+            margin: 0 auto;
+            border: 1px solid #000000;
+        }
+
+        .move {
+            cursor: move;
+        }
+    </style>
+    <script src="../lib/sea.js"></script>
+</head>
+<body>
+<div class="div">
+    <canvas id="canvas" width="800" height="500"></canvas>
+</div>
+<script>
+    seajs.config({
+        alias: {
+            'main': '../src/main'
+        }
+    });
+    seajs.use('main', function(C) {
+        var canvas = document.getElementById('canvas');
+
+        var c = new C(canvas);
+        var polygon = c.createDraw();
+        c.saveData();
+
+        polygon.polygon({
+            point: {x: 300, y:300},
+            radius: 100,
+            sides: 10,
+//            startAngle: 1/3 * Math.PI,
+            style: {
+                color: 'blue',
+                lineWidth: 1
+            }
+//            ,type: 'fill'
+        });
+
+        var state = false;
+        var startX = null;
+        var startY = null;
+        polygon.on('mousedown', function(e) {
+            state = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        c.on('mousemove', function(e) {
+            if (!state) {
+                return;
+            }
+
+            var endX = e.clientX;
+            var endY = e.clientY;
+            var x = endX - startX;
+            var y = endY - startY;
+
+            c.restoreData();
+            polygon.move({
+                right: x,
+                bottom: y
+            }).resetDraw();
+
+            startX = endX;
+            startY = endY;
+        });
+
+        c.on('mouseup', function() {
+            state = false;
+        });
+    });
+</script>
+</body>
+</html>
