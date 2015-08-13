@@ -1,11 +1,13 @@
 /**
  * Created by liudan on 15/8/8.
  */
+'use strict';
 define(function(require, exports, module) {
     var util = require('./util');
     var isObject = util.isObject;
     var isArray = util.isArray;
     var isNumber = util.isNumber;
+    var isFunction = util.isFunction;
 
     var Base = require('./base');
 
@@ -76,6 +78,7 @@ define(function(require, exports, module) {
         var draws = this.draws;
         var item = null;
 
+        context.save();
         context.beginPath();
 
         for (var i = 0;i < draws.length;i++) {
@@ -84,6 +87,7 @@ define(function(require, exports, module) {
         }
 
         context.closePath();
+        context.restore();
         return context.isPointInPath(x, y);
     };
 
@@ -94,6 +98,7 @@ define(function(require, exports, module) {
         var draws = this.draws;
         var item = null;
 
+        context.save();
         context.beginPath();
 
         for (var i = 0;i < draws.length;i++) {
@@ -104,6 +109,7 @@ define(function(require, exports, module) {
         }
 
         context.closePath();
+        context.restore();
         return context.isPointInPath(x, y);
     };
 
@@ -206,18 +212,24 @@ define(function(require, exports, module) {
         var y = obj.point.y;
         var w = obj.width;
         var h = obj.height;
+        var paramArr = [x, y, w, h, obj.transform];
 
         context.save();
+
+//        this.clip('rect', paramArr);
+        context.globalCompositeOperation = obj.globalCompositeOperation || 'source-over';
+//        context.globalCompositeOperation = 'source-atop';
         context.beginPath();
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.rect(x, y, w, h);
+
+        base.rect(x, y, w, h, obj.transform);
 
         base._draw(obj);
 
         context.restore();
-        this.set('rect', obj, [x, y, w, h], uuid);
+        this.set('rect', obj, paramArr, uuid);
         return this;
     };
 
@@ -249,12 +261,12 @@ define(function(require, exports, module) {
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.arc(x, y, r, startPI, endPI, !!obj.clockwise);
+        base.arc(x, y, r, startPI, endPI, !!obj.clockwise, obj.transform);
 
         base._draw(obj);
 
         context.restore();
-        this.set('arc', obj, [x, y, r, startPI, endPI, !!obj.clockwise], uuid);
+        this.set('arc', obj, [x, y, r, startPI, endPI, !!obj.clockwise, obj.transform], uuid);
         return this;
     };
 
@@ -294,12 +306,12 @@ define(function(require, exports, module) {
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.roundRect(x, y, w, h, r);
+        base.roundRect(x, y, w, h, r, obj.transform);
 
         base._draw(obj);
 
         context.restore();
-        this.set('roundRect', obj, [x, y, w, h, r], uuid);
+        this.set('roundRect', obj, [x, y, w, h, r, obj.transform], uuid);
         return this;
     };
 
@@ -326,12 +338,12 @@ define(function(require, exports, module) {
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.lineFrame(point);
+        base.lineFrame(point, obj.transform);
 
         base._draw(obj);
 
         context.restore();
-        this.set('lineFrame', obj, [point], uuid);
+        this.set('lineFrame', obj, [point, obj.transform], uuid);
         return this;
     };
 
@@ -373,12 +385,12 @@ define(function(require, exports, module) {
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.polygon(points);
+        base.polygon(points, obj.transform);
 
         base._draw(obj);
 
         context.restore();
-        this.set('polygon', obj, [points], uuid);
+        this.set('polygon', obj, [points, obj.transform], uuid);
         return this;
     };
 
@@ -408,12 +420,12 @@ define(function(require, exports, module) {
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.line(point);
+        base.line(point, obj.transform);
 
         base._draw(obj);
 
         context.restore();
-        this.set('line', obj, [point], uuid);
+        this.set('line', obj, [point, obj.transform], uuid);
         return this;
     };
 
@@ -468,11 +480,11 @@ define(function(require, exports, module) {
 
         base._setStyle(obj.style, obj.shadow);
 
-        base.dashedLine(points);
+        base.dashedLine(points, obj.transform);
 
         context.stroke();
         context.restore();
-        this.set('dashedLine', obj, [points], uuid);
+        this.set('dashedLine', obj, [points, obj.transform], uuid);
         return this;
     };
 
@@ -503,31 +515,34 @@ define(function(require, exports, module) {
         base._setStyle(obj.style, obj.shadow);
 
         base.bezier(obj.point[0].x, obj.point[0].y, obj.point[1].x, obj.point[1].y,
-            obj.controlPoints);
+            obj.controlPoints, obj.transform);
 
         base._draw(obj);
 
         context.restore();
         this.set('bezier', obj, [obj.point[0].x, obj.point[0].y, obj.point[1].x, obj.point[1].y,
-            obj.controlPoints], uuid);
+            obj.controlPoints, obj.transform], uuid);
         return this;
     };
 
     /**
-     *  画阴影
-     *  @param shadow {object}
-     *      - color: {string}
-     *      - offsetX: {number}
-     *      - offsetY: {number}
-     *      - blur: {number}
+     *  裁减
+     *  @param type {string}
+     *  @param path {array}
      */
-    Draw.prototype._shadow = function(shadow) {
-        if (isObject(shadow)) {
-            var context = this.context;
-            context.shadowColor = shadow.color;
-            context.shadowOffsetX = shadow.offsetX || 0;
-            context.shadowOffsetY = shadow.offsetY || 0;
-            context.shadowBlur = shadow.blur || 0;
+    Draw.prototype.clip = function(type, path) {
+        var context = this.context;
+        var base = this.base;
+
+        if (isFunction(base[type])) {
+//            context.save();
+            context.beginPath();
+            base[type].apply(base, path);
+
+            context.closePath();
+            context.clip();
+
+//            context.restore();
         }
     };
 

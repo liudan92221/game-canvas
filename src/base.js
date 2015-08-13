@@ -5,7 +5,8 @@
 define(function(require, exports, module) {
     var util = require('./util');
     var isObject = util.isObject;
-//    var isArray = util.isArray;
+    var isArray = util.isArray;
+//    var isFunction = util.isFunction;
 //    var isNumber = util.isNumber;
 
 //    var Graphical = require('./graphical');
@@ -14,26 +15,57 @@ define(function(require, exports, module) {
         this.context = context;
     }
 
+    Base.prototype._transform = function(transform) {
+        var context = this.context;
+
+        if (!transform) {
+            return;
+        }
+
+        if (transform.rotate) {
+            context.rotate(transform.rotate);
+        }
+
+        if (transform.scale) {
+            context.scale(transform.scale.x, transform.scale.y);
+        }
+
+        if (transform.translate) {
+            context.translate(transform.translate.x, transform.translate.y);
+        }
+
+        if (isArray(transform.transform)) {
+            context.transform.apply(context, transform.transform);
+        }
+
+        if (isArray(transform.setTransform)) {
+            context.setTransform.apply(context, transform.setTransform);
+        }
+    };
+
     /**
      *  画矩形
      */
-    Base.prototype.rect = function(x, y, w, h) {
+    Base.prototype.rect = function(x, y, w, h, transform) {
+        this._transform(transform);
         this.context.rect(x, y, w, h);
     };
 
     /**
      *  画圆
      */
-    Base.prototype.arc = function(x, y, r, startPI, endPI, clockwise) {
+    Base.prototype.arc = function(x, y, r, startPI, endPI, clockwise, transform) {
+        this._transform(transform);
         this.context.arc(x, y, r, startPI, endPI, clockwise);
     };
 
     /**
      *  画圆角矩形
      */
-    Base.prototype.roundRect = function(x, y, w, h, r) {
+    Base.prototype.roundRect = function(x, y, w, h, r, transform) {
         var context = this.context;
 
+        this._transform(transform);
         context.moveTo(x, y+r[0]);
         context.arcTo(x, y, x+r[0], y, r[0]);
         context.arcTo(x+w, y, x+w, y+r[1], r[1]);
@@ -45,9 +77,10 @@ define(function(require, exports, module) {
     /**
      *  画线框
      */
-    Base.prototype.lineFrame = function(points) {
+    Base.prototype.lineFrame = function(points, transform) {
         var context = this.context;
 
+        this._transform(transform);
         context.moveTo(points[0].x, points[0].y);
         for (var i = 1;i < points.length;i++) {
             context.lineTo(points[i].x, points[i].y);
@@ -57,22 +90,24 @@ define(function(require, exports, module) {
     /**
      *  画多边形
      */
-    Base.prototype.polygon = function(points) {
-        this.lineFrame(points);
+    Base.prototype.polygon = function(points, transform) {
+        this.lineFrame(points, transform);
     };
 
     /**
      *  画线段
      */
-    Base.prototype.line = function(points) {
-        this.lineFrame(points);
+    Base.prototype.line = function(points, transform) {
+        this.lineFrame(points, transform);
     };
 
     /**
      *  画虚线
      */
-    Base.prototype.dashedLine = function(points) {
+    Base.prototype.dashedLine = function(points, transform) {
         var context = this.context;
+
+        this._transform(transform);
         for (var i = 0; i < points.length; i++) {
             context[points[i].type](points[i].x, points[i].y);
         }
@@ -81,9 +116,10 @@ define(function(require, exports, module) {
     /**
      *  画贝塞尔曲线
      */
-    Base.prototype.bezier = function(startX, startY, endX, endY, controlPoints) {
+    Base.prototype.bezier = function(startX, startY, endX, endY, controlPoints, transform) {
         var context = this.context;
 
+        this._transform(transform);
         context.moveTo(startX, startY);
         if (controlPoints.length === 1) {
             context.quadraticCurveTo(controlPoints[0].x, controlPoints[0].y,
@@ -145,14 +181,6 @@ define(function(require, exports, module) {
             if (obj.closePath) context.closePath();
             context.stroke();
         }
-    };
-
-    Base.prototype.on = function(type, cb) {
-        var _this = this;
-        this.canvas.addEventListener(type, function(e) {
-            e.preventDefault();
-            cb.call(_this, e);
-        }, false);
     };
 
     module.exports = Base;

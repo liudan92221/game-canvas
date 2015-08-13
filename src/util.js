@@ -25,6 +25,7 @@ define(function(require, exports, module) {
         isObject: isType('Object'),
         isNumber: isType('Number'),
         isArray: Array.isArray ? Array.isArray : isType('Array'),
+        isFunction: isType('Function'),
 
         merge: merge
     }
